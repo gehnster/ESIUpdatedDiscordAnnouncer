@@ -12,6 +12,9 @@ jobs:
   check-esi:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write  # Needed to commit and push changes
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
