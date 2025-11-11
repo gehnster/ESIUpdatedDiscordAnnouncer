@@ -11,6 +11,7 @@ on:
 jobs:
   check-esi:
     runs-on: ubuntu-latest
+    environment: daily_run
     
     permissions:
       contents: write  # Needed to commit and push changes
