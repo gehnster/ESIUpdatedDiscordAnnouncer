@@ -13,7 +13,7 @@ from urllib.error import URLError, HTTPError
 
 def fetch_esi_compatibility_dates():
     """Fetch the latest compatibility dates from ESI API."""
-    url = "https://esi.evetech.net/latest/meta/compatibility-dates/"
+    url = "https://esi.evetech.net/meta/compatibility-dates"
     try:
         with request.urlopen(url, timeout=10) as response:
             data = json.loads(response.read().decode())
