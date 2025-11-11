@@ -1,0 +1,52 @@
+name: Check ESI Compatibility Updates
+
+on:
+  schedule:
+    # Run daily at 18:15 UTC (12:15 PM CST / 1:15 PM CDT)
+    # Note: During daylight saving time (CDT), this will be 1:15 PM Central
+    # During standard time (CST), this will be 12:15 PM Central
+    - cron: '15 18 * * *'
+  workflow_dispatch:  # Allow manual triggering for testing
+
+jobs:
+  check-esi:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write  # Needed to commit and push changes
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so we can commit changes
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Run ESI compatibility check
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python scripts/check_esi_update.py
+      
+      - name: Commit updated date if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Check if last_esi_date.txt exists and has changes
+          if [ -f "last_esi_date.txt" ]; then
+            git add last_esi_date.txt
+            # Only commit if there are changes
+            git diff --staged --quiet || git commit -m "Update last known ESI compatibility date"
+          fi
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
