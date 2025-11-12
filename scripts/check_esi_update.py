@@ -16,7 +16,6 @@ from urllib.error import URLError, HTTPError
 ESI_COMPAT_URL = "https://esi.evetech.net/meta/compatibility-dates"
 LAST_DATE_FILE = "last_esi_date.txt"
 # Only used for Discord webhook POSTs
-USER_AGENT = "ESIUpdatedDiscordAnnouncer/1.0 (+https://github.com/gehnster/ESIUpdatedDiscordAnnouncer)"
 
 
 def fetch_esi_compatibility_dates() -> Dict[str, Any]:
@@ -188,20 +187,19 @@ def write_latest_date(file_path: str, date: str) -> None:
 
 def post_to_discord(
     webhook_url: str,
-    message: str,
-    username: str | None = None,
-    avatar_url: str | None = None
+    user_agent: str,
+    message: str
 ) -> None:
     """Post a message to Discord via webhook with improved diagnostics."""
     if not webhook_url:
         print("Error: Discord webhook URL not provided")
         sys.exit(1)
 
+    if not user_agent:
+        print("Error: User Agent not provided")
+        sys.exit(1)
+
     payload: dict[str, str] = {"content": message}
-    if username:
-        payload["username"] = username
-    if avatar_url:
-        payload["avatar_url"] = avatar_url
 
     data = json.dumps(payload).encode("utf-8")
 
@@ -210,7 +208,7 @@ def post_to_discord(
         data=data,
         headers={
             "Content-Type": "application/json",
-            "User-Agent": USER_AGENT  # Only applied here
+            "User-Agent": user_agent
         },
         method="POST"
     )
@@ -252,14 +250,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Do not exit with error on Discord post failure (useful for testing)."
     )
-    parser.add_argument(
-        "--webhook-username",
-        help="Override Discord webhook username."
-    )
-    parser.add_argument(
-        "--webhook-avatar-url",
-        help="Override Discord webhook avatar image URL."
-    )
     return parser.parse_args()
 
 
@@ -270,6 +260,11 @@ def main() -> None:
     discord_webhook = os.environ.get("DISCORD_WEBHOOK_URL")
     if not discord_webhook:
         print("Error: DISCORD_WEBHOOK_URL environment variable not set")
+        sys.exit(1)
+
+    user_agent = os.environ.get("USER_AGENT")
+    if not user_agent:
+        print("Error: USER_AGENT environment variable not set")
         sys.exit(1)
 
     print("Fetching ESI compatibility dates...")
@@ -301,9 +296,8 @@ def main() -> None:
         try:
             post_to_discord(
                 discord_webhook,
-                message,
-                username=args.webhook_username,
-                avatar_url=args.webhook_avatar_url
+                user_agent,
+                message
             )
         except SystemExit as e:
             if args.always_success:
