@@ -15,6 +15,8 @@ from urllib.error import URLError, HTTPError
 # Constants
 ESI_COMPAT_URL = "https://esi.evetech.net/meta/compatibility-dates"
 LAST_DATE_FILE = "last_esi_date.txt"
+# Only used for Discord webhook POSTs
+USER_AGENT = "ESIUpdatedDiscordAnnouncer/1.0 (+https://github.com/gehnster/ESIUpdatedDiscordAnnouncer)"
 
 
 def fetch_esi_compatibility_dates() -> Dict[str, Any]:
@@ -28,6 +30,7 @@ def fetch_esi_compatibility_dates() -> Dict[str, Any]:
         SystemExit: On network errors or invalid JSON responses.
     """
     try:
+        # No custom User-Agent needed here per your note
         with request.urlopen(ESI_COMPAT_URL, timeout=10) as response:
             data = json.loads(response.read().decode())
             
@@ -101,9 +104,7 @@ def parse_iso_date(date_str: str) -> datetime:
     
     # Try parsing as full ISO 8601 format with time
     try:
-        # Handle timezone-aware ISO 8601 strings
         if 'T' in date_str:
-            # Remove timezone info for simple parsing
             date_part = date_str.split('T')[0]
             return datetime.strptime(date_part, "%Y-%m-%d")
     except ValueError:
@@ -207,7 +208,10 @@ def post_to_discord(
     req = request.Request(
         webhook_url,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": USER_AGENT  # Only applied here
+        },
         method="POST"
     )
 
