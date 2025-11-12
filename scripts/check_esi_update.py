@@ -3,6 +3,7 @@
 Script to check ESI compatibility dates and post to Discord if updated.
 """
 
+import argparse
 import json
 import os
 import sys
