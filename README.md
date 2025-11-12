@@ -15,6 +15,7 @@ This GitHub Action runs daily at 12:15 PM Central Time to check the [ESI compati
 3. Copy the webhook URL
 4. In your GitHub repository, go to Settings → Secrets and variables → Actions
 5. Create a new repository secret named `DISCORD_WEBHOOK_URL` and paste the webhook URL as the value
+6. Create a new repository variable named `USER_AGENT` and add a user agent that is specific to you like the name of the repo your agent is running under. Example: ESIUpdatedDiscordAnnouncer/1.0 (+https://github.com/gehnster/ESIUpdatedDiscordAnnouncer)
 
 ### 2. Enable GitHub Actions
 
